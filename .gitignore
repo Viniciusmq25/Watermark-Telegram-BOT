@@ -1,0 +1,25 @@
+# Dependências
+node_modules/
+
+# Arquivos de ambiente
+.env
+
+# Arquivos temporários/downloads
+downloads/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+
+# Diretório de cobertura de código
+coverage/
+
+# arquivos do sistema operacional
+.DS_Store
+Thumbs.db
