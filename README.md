@@ -53,7 +53,7 @@ node main.js
 
 2. In Telegram, interact with the bot using these commands:
 
-- `/mark` - Start the watermark process. Send text or a PNG file after this command
+- `/start` - start the bot
 - `/size [small|medium|large]` - Set the watermark size
 - Send any photo or video to apply the configured watermark
 
