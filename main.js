@@ -145,6 +145,12 @@ function cleanUpFiles(files) {
     });
 }
 
+//comando /start
+bot.onText(/\/start/, (msg) => {
+    const chatId = msg.chat.id;
+    bot.sendMessage(chatId, 'Hello! I am a watermark bot. Send me a photo or video to add a watermark to it. Use /size <b>large</b>, <b>medium</b> or <b>small</b> to adjust the size.', { parse_mode: 'HTML' });
+});
+
 // Comando /size
 bot.onText(/\/size (small|medium|large)/, (msg, match) => {
     const chatId = msg.chat.id;
@@ -162,7 +168,7 @@ bot.on('message', async (msg) => {
     } else if (msg.video) {
         await handleVideo(msg);
     } else if (msg.text && !msg.text.startsWith('/')) {
-        await bot.sendMessage(chatId, 'Envie uma foto ou vídeo para adicionar a marca d\'água. Use /size <b>large</b>, <b>medium</b> ou <b>small</b> para ajustar o tamanho.', { parse_mode: 'HTML' });
+        await bot.sendMessage(chatId, 'Send a photo or video to add the watermark. Use /size <b>large</b>, <b>medium</b> or <b>small</b> to adjust the size.', { parse_mode: 'HTML' });
     }
 });
 
@@ -182,7 +188,7 @@ async function handlePhoto(msg) {
 
       const size = userWatermarkSizes[chatId] || 'large';
       
-      statusMessage = await bot.sendMessage(chatId, '⏳ Baixando imagem...');
+      statusMessage = await bot.sendMessage(chatId, '⏳ Downloading image...');
       
       const filePath = `https://api.telegram.org/file/bot${token}/${fileInfo.path}`;
       imagePath = `./downloads/${fileId}.jpg`;
@@ -190,7 +196,7 @@ async function handlePhoto(msg) {
 
       await downloadFile(filePath, imagePath);
       
-      await bot.editMessageText('⚙️ Adicionando marca d\'água...', {
+      await bot.editMessageText('⚙️ Adding watermark...', {
           chat_id: chatId,
           message_id: statusMessage.message_id
       });
@@ -200,22 +206,22 @@ async function handlePhoto(msg) {
       await bot.deleteMessage(chatId, statusMessage.message_id);
 
       await bot.sendPhoto(chatId, outputPath, {
-          caption: 'Aqui está sua foto com marca d\'água! Use /size <b>large</b>, <b>medium</b> ou <b>small</b> para ajustar o tamanho.',
+          caption: 'Here is your photo with watermark! Use /size <b>large</b>, <b>medium</b> or <b>small</b> to adjust the size.',
           parse_mode: 'HTML'
       });
 
   } catch (error) {
-      let errorMessage = '❌ Ocorreu um erro ao processar sua imagem. Por favor, tente novamente.';
+      let errorMessage = '❌ An error occurred while processing your image. Please try again.';
       
       if (error.message === 'FILE_TOO_LARGE') {
-          errorMessage = `❌ A imagem é muito grande. Por favor, envie uma imagem menor que ${FILE_SIZE_LIMITS.PHOTO / (1024 * 1024)}MB.`;
+          errorMessage = `❌ The image is too large. Please send an image smaller than ${FILE_SIZE_LIMITS.PHOTO / (1024 * 1024)}MB.`;
       }
       
       if (statusMessage) {
           await bot.deleteMessage(chatId, statusMessage.message_id);
       }
       await bot.sendMessage(chatId, errorMessage);
-      console.error('Erro no processamento da foto:', error);
+      console.error('Error on photo processing:', error);
   } finally {
       cleanUpFiles([imagePath, outputPath].filter(f => f && fs.existsSync(f)));
   }
@@ -235,7 +241,7 @@ async function handleVideo(msg) {
           throw new Error('FILE_TOO_LARGE');
       }
       
-      statusMessage = await bot.sendMessage(chatId, '⏳ Baixando vídeo...');
+      statusMessage = await bot.sendMessage(chatId, '⏳ Downloading video...');
       
       const filePath = `https://api.telegram.org/file/bot${token}/${fileInfo.path}`;
       videoPath = `./downloads/${fileId}.mp4`;
@@ -243,7 +249,7 @@ async function handleVideo(msg) {
 
       await downloadFile(filePath, videoPath);
       
-      await bot.editMessageText('⚙️ Adicionando marca d\'água...', {
+      await bot.editMessageText('⚙️ Adding watermark', {
           chat_id: chatId,
           message_id: statusMessage.message_id
       });
@@ -258,24 +264,24 @@ async function handleVideo(msg) {
       await bot.deleteMessage(chatId, statusMessage.message_id);
 
       await bot.sendVideo(chatId, outputPath, {
-          caption: 'Aqui está seu vídeo com marca d\'água! Use /size <b>large</b>, <b>medium</b> ou <b>small</b> para ajustar o tamanho.',
+          caption: 'Here is your video with watermark! Use /size <b>large</b>, <b>medium</b> or <b>small</b> to adjust the size.',
           parse_mode: 'HTML'
       });
 
   } catch (error) {
-      let errorMessage = '❌ Ocorreu um erro ao processar seu vídeo. Por favor, tente novamente.';
+      let errorMessage = '❌ An error occurred while processing your video. Please try again.';
       
       if (error.message === 'FILE_TOO_LARGE') {
-          errorMessage = `❌ O vídeo é muito grande. Por favor, envie um vídeo menor que ${FILE_SIZE_LIMITS.VIDEO / (1024 * 1024)}MB.`;
+          errorMessage = `❌ The video is too large. Please send an video smaller than ${FILE_SIZE_LIMITS.PHOTO / (1024 * 1024)}MB.`;
       } else if (error.message === 'OUTPUT_TOO_LARGE') {
-          errorMessage = '❌ O vídeo processado ficou muito grande para ser enviado. Tente um vídeo menor.';
+          errorMessage = '❌ The processed video is too large to send. Try a smaller video.';
       }
       
       if (statusMessage) {
           await bot.deleteMessage(chatId, statusMessage.message_id);
       }
       await bot.sendMessage(chatId, errorMessage);
-      console.error('Erro no processamento do vídeo:', error);
+      console.error('Error on video processing', error);
   } finally {
       cleanUpFiles([videoPath, outputPath].filter(f => f && fs.existsSync(f)));
   }
@@ -288,8 +294,8 @@ if (!fs.existsSync('./downloads')) {
 
 // Verificar se o arquivo watermark.png existe
 if (!fs.existsSync(WATERMARK_PATH)) {
-    console.error('Arquivo watermark.png não encontrado! Por favor, adicione o arquivo watermark.png na pasta raiz do projeto.');
+    console.error('The watermark.png file was not found! Please add the watermark.png file to the project root folder.');
     process.exit(1);
 }
 
-console.log('Bot iniciado com sucesso!');
+console.log('Bot is running...');
